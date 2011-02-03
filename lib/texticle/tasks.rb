@@ -77,6 +77,21 @@ namespace :texticle do
     puts "Trigram text search module successfully installed into '#{db_name}' database."
   end
 
+  desc "Install unaccent text search module"
+  task :install_unaccent => [:environment] do
+    share_dir = `pg_config --sharedir`.chomp
+    raise RuntimeError, 'cannot find Postgres\' shared directory' unless $?.exitstatus.zero?
+    unaccent = "#{share_dir}/contrib/unaccent.sql"
+    unless system("ls #{unaccent}")
+      raise RuntimeError, 'cannot find unaccent module; was it compiled and installed?'
+    end
+    db_name = ActiveRecord::Base.connection.current_database
+    unless system("psql -d #{db_name} -f #{unaccent}")
+      raise RuntimeError, "`psql -d #{db_name} -f #{unaccent}` cannot complete successfully"
+    end
+    puts "unaccent text search module successfully installed into '#{db_name}' database."
+  end
+
   def insert_sql_statements_into_migration_file statements, fh
     statements.each do |statement|
       fh.puts <<-eostmt
