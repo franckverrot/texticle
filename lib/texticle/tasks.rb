@@ -92,6 +92,21 @@ namespace :texticle do
     puts "unaccent text search module successfully installed into '#{db_name}' database."
   end
 
+  desc "Install tsearch2 text search module"
+  task :install_tsearch2 => [:environment] do
+    share_dir = `pg_config --sharedir`.chomp
+    raise RuntimeError, 'cannot find Postgres\' shared directory' unless $?.exitstatus.zero?
+    tsearch2 = "#{share_dir}/contrib/tsearch2.sql"
+    unless system("ls #{tsearch2}")
+      raise RuntimeError, 'cannot find tsearch2 module; was it compiled and installed?'
+    end
+    db_name = ActiveRecord::Base.connection.current_database
+    unless system("psql -d #{db_name} -f #{tsearch2}")
+      raise RuntimeError, "`psql -d #{db_name} -f #{tsearch2}` cannot complete successfully"
+    end
+    puts "tsearch2 text search module successfully installed into '#{db_name}' database."
+  end
+
   def insert_sql_statements_into_migration_file statements, fh
     statements.each do |statement|
       fh.puts <<-eostmt
